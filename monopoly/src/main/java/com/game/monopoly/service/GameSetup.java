@@ -1,6 +1,7 @@
 package com.game.monopoly.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,14 +42,14 @@ public class GameSetup implements IGameSetup {
 		List<Player> players = new ArrayList<>();
 		
 		for(int i=0; i<numberOfPlayers; i++) {
-			players.add(new Player((i+1), String.join("-", "Player", String.valueOf(i)), 1000, 0, new ArrayList<>()));
+			players.add(new Player((i+1), String.join("-", "Player", String.valueOf(i+1)), 1000, 0, new ArrayList<>()));
 		}
 		
 		return players;
 	}
 	
-	public Map<Player, Integer> getDiceOutputs(String diceOutputs, List<Player> players) {
-		Map<Player, Integer> playerDiceMap = new LinkedHashMap<>();
+	public Map<Integer, Map<Player, Integer>> getDiceOutputs(String diceOutputs, List<Player> players) {
+		Map<Integer, Map<Player, Integer>> playerDiceMap = new LinkedHashMap<>();
 		
 		String[] diceOutputList = StringUtils.split(diceOutputs, ",");
 		int noOfDiceOutputs = StringUtils.split(diceOutputs, ",").length;
@@ -57,7 +58,9 @@ public class GameSetup implements IGameSetup {
 		
 		while (noOfDiceOutputs != 0) {
 			
-			playerDiceMap.put(players.get(playerCounter), Integer.valueOf(diceOutputList[tempCounter]));
+			Map<Player, Integer> temp = new HashMap<>();
+			temp.put(players.get(playerCounter), Integer.valueOf(diceOutputList[tempCounter]));
+			playerDiceMap.put(Integer.valueOf(tempCounter + 1), temp);
 			if(playerCounter == players.size()-1) {
 				playerCounter = 0;
 			} else {

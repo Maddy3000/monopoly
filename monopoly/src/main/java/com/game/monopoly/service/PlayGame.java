@@ -49,13 +49,15 @@ public class PlayGame implements IPlayGame {
 
 			Board board = gameSetup.initBoard(strCells);
 			List<Player> players = gameSetup.initPlayers(numberOfPlayers);
-			Map<Player, Integer> playerDiceMap = gameSetup.getDiceOutputs(diceOutputs, players);
+			Map<Integer, Map<Player, Integer>> playerDiceMap = gameSetup.getDiceOutputs(diceOutputs, players);
 			List<Cell> cells = board.getCells();
 
-			for(Entry<Player, Integer> playerDice : playerDiceMap.entrySet()) {
+			for(Entry<Integer, Map<Player, Integer>> playerDice : playerDiceMap.entrySet()) {
 
-				Player player = playerDice.getKey();
-				int diceValue = playerDice.getValue().intValue();
+				Map<Player, Integer> playerMap = playerDice.getValue();
+				
+				Player player = playerMap.keySet().iterator().next();
+				int diceValue = playerMap.get(player).intValue();
 
 				int currentLocation = player.getCellPosition();
 				int cellIndex = (currentLocation + diceValue) % cells.size();
@@ -68,7 +70,7 @@ public class PlayGame implements IPlayGame {
 			
 			players.forEach(player -> {
 				int assetAmount = getAssetAmount(player.getHotels());
-				logger.info(player.getName() + " has total worth " + player.getAmount() + assetAmount);
+				logger.info(player.getName() + " has total worth " + (player.getAmount() + assetAmount));
 			});
 			
 		} catch (Exception e) {
