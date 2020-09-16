@@ -1,7 +1,7 @@
 package com.game.monopoly.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -48,7 +48,7 @@ public class GameSetup implements IGameSetup {
 	}
 	
 	public Map<Player, Integer> getDiceOutputs(String diceOutputs, List<Player> players) {
-		Map<Player, Integer> playerDiceMap = new HashMap<>();
+		Map<Player, Integer> playerDiceMap = new LinkedHashMap<>();
 		
 		String[] diceOutputList = StringUtils.split(diceOutputs, ",");
 		int noOfDiceOutputs = StringUtils.split(diceOutputs, ",").length;
