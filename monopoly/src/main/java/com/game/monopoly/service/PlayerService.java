@@ -1,5 +1,7 @@
 package com.game.monopoly.service;
 
+import java.util.stream.IntStream;
+
 import org.springframework.stereotype.Service;
 
 import com.game.monopoly.constant.CellType;
@@ -31,6 +33,16 @@ public class PlayerService implements IPlayerService {
 		} else {
 			throw new InsufficientFundsException("You don't have enough money to pay rent");
 		}
+	}
+
+	@Override
+	public int getAssestAmount(Player player) {
+		return IntStream.range(0, player.getHotels().size()).map(hotelValue -> 200).sum();
+	}
+
+	@Override
+	public int getNetWorth(Player player) {
+		return getAssestAmount(player) + player.getAmount();
 	}
 
 }

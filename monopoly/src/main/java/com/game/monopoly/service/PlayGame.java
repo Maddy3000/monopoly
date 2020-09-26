@@ -1,6 +1,7 @@
 package com.game.monopoly.service;
 
-import java.util.List;
+import java.util.Comparator;
+import java.util.NoSuchElementException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +40,11 @@ public class PlayGame implements IPlayGame {
 
 			setup();
 			Player winner = play();
+			
+			logger.info("Player {} wins the game \n\n", winner.getName());
 
-			players.getPlayers().forEach(player -> {
-				int assetAmount = getAssetAmount(player.getHotels());
-				logger.info(player.getName() + " has total worth " + (player.getAmount() + assetAmount));
-			});
+			players.getPlayers().forEach(player -> 
+				logger.info("{} has total worth {}", player.getName(), playerService.getNetWorth(player)));
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -92,8 +93,9 @@ public class PlayGame implements IPlayGame {
 			}
 			logger.info("=========================================================================== \n\n");
 		}
-
-		return null;
+		
+		return players.getPlayers().stream().max(Comparator.comparing(player -> playerService.getNetWorth(player)))
+			.orElseThrow(NoSuchElementException::new);
 	}
 
 	private void move(Player player, int diceValue) {
@@ -140,15 +142,4 @@ public class PlayGame implements IPlayGame {
 		
 		return actionPerformed;
 	}
-
-	private static int getAssetAmount(List<Hotel> hotels) {
-		int amount = 0;
-		if (!hotels.isEmpty()) {
-			for (Hotel hotel : hotels) {
-				amount = amount + CellType.H.getValue();
-			}
-		}
-		return amount;
-	}
-
 }

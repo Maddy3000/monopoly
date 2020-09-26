@@ -7,4 +7,6 @@ public interface IPlayerService {
 	
 	void buy(Player player, Hotel hotel);
 	void payRent(Player owner, Player tenant, int rent);
+	int getAssestAmount(Player player);
+	int getNetWorth(Player player);
 }
