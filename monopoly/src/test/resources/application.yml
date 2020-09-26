@@ -1,0 +1,8 @@
+game:
+  monopoly:
+    diceOutputs: 4,4,4,6,7,8
+    setup:
+      noOfPlayers: 2
+      playerNames: Andy,Maddy
+      cells: E,E,J,H,E,T,J,T,E,E,H,J,T,H,E,E,J,H,E,T,J,T,E,E,H,J,T,H,J,E,E,J,H,E,T,J,T,E,E,H,J,T,E,H,E
+    

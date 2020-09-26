@@ -1,85 +1,146 @@
 package com.game.monopoly.service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Scanner;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.game.monopoly.config.MonopolyPorperties;
 import com.game.monopoly.constant.CellType;
-import com.game.monopoly.exception.InsufficientFundsException;
 import com.game.monopoly.model.Board;
 import com.game.monopoly.model.Cell;
 import com.game.monopoly.model.Hotel;
 import com.game.monopoly.model.Player;
+import com.game.monopoly.model.Players;
 
 @Service
 public class PlayGame implements IPlayGame {
 
-	private static Log logger = LogFactory.getLog(PlayGame.class);
+	private static Logger logger = LoggerFactory.getLogger(PlayGame.class);
 
 	@Autowired
-	private GameSetup gameSetup;
+	private IGameSetupService setupGameService;
 
-	@Override
-	public int rollDice(int round, int playerId) {
+	@Autowired
+	private IPlayerService playerService;
 
-		return 0;
-	}
+	@Autowired
+	private MonopolyPorperties properties;
+
+	private Board board;
+	private Players players;
 
 	@Override
 	public void run(String... args) throws Exception {
 
-		Scanner sc = new Scanner(System.in);
-
 		try {
-			logger.info("Number of players : ");
-			int numberOfPlayers = sc.nextInt();
 
-			sc.nextLine();
-			logger.info("Cell position and type : ");
-			String strCells = sc.nextLine();
+			setup();
+			Player winner = play();
 
-			logger.info("Dice outputs for all players : ");
-			String diceOutputs = sc.nextLine();
-
-			Board board = gameSetup.initBoard(strCells);
-			List<Player> players = gameSetup.initPlayers(numberOfPlayers);
-			Map<Integer, Map<Player, Integer>> playerDiceMap = gameSetup.getDiceOutputs(diceOutputs, players);
-			List<Cell> cells = board.getCells();
-
-			for(Entry<Integer, Map<Player, Integer>> playerDice : playerDiceMap.entrySet()) {
-
-				Map<Player, Integer> playerMap = playerDice.getValue();
-				
-				Player player = playerMap.keySet().iterator().next();
-				int diceValue = playerMap.get(player).intValue();
-
-				int currentLocation = player.getCellPosition();
-				int cellIndex = (currentLocation + diceValue) % cells.size();
-
-				player.setCellPosition(cellIndex);
-
-				Cell targetCell = cells.get(cellIndex);
-				processCell(player, board, targetCell);
-			}
-			
-			players.forEach(player -> {
+			players.getPlayers().forEach(player -> {
 				int assetAmount = getAssetAmount(player.getHotels());
 				logger.info(player.getName() + " has total worth " + (player.getAmount() + assetAmount));
 			});
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			sc.close();
 		}
 	}
 	
+	@Override
+	public void setup() {
+		board = setupGameService.initBoard();
+		players = setupGameService.initPlayers();
+	}
+	
+	@Override
+	public Player play() {
+
+		int[] diceOutputs = properties.getDiceOutputs();
+
+		int diceRollCounter = -1;
+		int round = 1;
+
+		while(diceRollCounter < diceOutputs.length - 1) {
+			
+			logger.info("Round: {}", round++);
+			for(Player player : players.getPlayers()) {
+
+				//Roll the dice
+				logger.info("{} is rolling dice", player.getName());
+				diceRollCounter++;
+
+				//Get dice value
+				int diceValue = diceOutputs[diceRollCounter];
+				logger.info("{} gets {}", player.getName(), diceValue);
+
+				//Move the player
+				move(player, diceValue);
+				logger.info("{} moves at cell {} which is {}",
+						player.getName(),
+						player.getCellPosition(),
+						board.getCells().get(player.getCellPosition()).getCell().getKey());
+
+				//Take action
+				String actionPerformed = takeAction(player);
+				logger.info("{} performs action: {}", player.getName(), actionPerformed);
+				
+				logger.info("\n\n");
+			}
+			logger.info("=========================================================================== \n\n");
+		}
+
+		return null;
+	}
+
+	private void move(Player player, int diceValue) {
+		int currentPosition = player.getCellPosition();
+		int newPosition = (currentPosition + diceValue) % board.getCells().size();
+		player.setCellPosition(newPosition);
+	}
+
+	private String takeAction(Player player) {
+
+		String actionPerformed;
+		Cell cell = board.getCells().get(player.getCellPosition());
+
+		switch (cell.getCell()) {
+		case J:
+			player.setAmount(player.getAmount() - CellType.J.getValue());
+			actionPerformed = "Jail Fine";
+			break;
+		case H:
+
+			Hotel hotel = cell.getHotel();
+			Player owner = hotel.getOwner();
+
+			if(owner == null) {
+				playerService.buy(player, hotel);
+				actionPerformed = "Bought Hotel";
+			} else {
+				playerService.payRent(owner, player, 50);
+				actionPerformed = "Paid Rent";
+			}
+
+			break;
+		case T:
+			player.setAmount(player.getAmount() + CellType.T.getValue());
+			actionPerformed = "Found Treasure";
+			break;
+		case E:
+			actionPerformed = "Nothing";
+			break;
+		default:
+			actionPerformed = "Invalid Cell";
+			break;
+		}
+		
+		return actionPerformed;
+	}
+
 	private static int getAssetAmount(List<Hotel> hotels) {
 		int amount = 0;
 		if (!hotels.isEmpty()) {
@@ -88,57 +149,6 @@ public class PlayGame implements IPlayGame {
 			}
 		}
 		return amount;
-	}
-
-	private void processCell(Player player, Board board, Cell cell) {
-
-		switch (cell.getCell()) {
-		case J:
-			player.setAmount(player.getAmount() - CellType.J.getValue());
-			break;
-		case H:
-
-
-			Hotel hotel = cell.getHotel();
-			Player owner = hotel.getOwner();
-
-			if(owner == null) {
-				buyHotel(player, board, hotel);
-			} else {
-				payRent(player, owner, 50);
-			}
-
-			break;
-		case T:
-			player.setAmount(player.getAmount() + CellType.T.getValue());
-			break;
-		case E:
-			break;
-		default:
-			break;
-		}
-
-	}
-
-	private void payRent(Player player, Player owner, int rent) {
-		if (player.getAmount() >= CellType.H.getValue()) {
-			owner.setAmount(owner.getAmount() + rent);
-			player.setAmount(player.getAmount() - rent);
-		} else {
-			throw new InsufficientFundsException("You don't have enough money to pay rent");
-
-		}
-	}
-
-	private void buyHotel(Player player, Board board, Hotel hotel) {
-
-		if(player.getAmount() >= CellType.H.getValue()) {
-			player.setAmount(player.getAmount() - CellType.H.getValue());
-			hotel.setOwner(player);
-			player.getHotels().add(hotel);
-		} else {
-			throw new InsufficientFundsException("You don't have enough money to buy this hotel");
-		}
 	}
 
 }

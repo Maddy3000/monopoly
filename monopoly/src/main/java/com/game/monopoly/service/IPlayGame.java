@@ -2,7 +2,10 @@ package com.game.monopoly.service;
 
 import org.springframework.boot.CommandLineRunner;
 
+import com.game.monopoly.model.Player;
+
 public interface IPlayGame extends CommandLineRunner {
 	
-	public int rollDice(int round, int playerId);
+	void setup();
+	Player play();
 }

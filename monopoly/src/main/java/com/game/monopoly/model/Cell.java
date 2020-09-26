@@ -7,30 +7,34 @@ public class Cell {
 	private CellType cell;
 	private Hotel hotel;
 	
-	/**
-	 * @param cell
-	 * @param hotel
-	 */
-	public Cell(CellType cell, Hotel hotel) {
-		this.cell = cell;
-		this.hotel = hotel;
+	private Cell(Builder builder) {
+		this.cell = builder.cell;
+		this.hotel = builder.hotel;
 	}
 	
 	public CellType getCell() {
 		return cell;
 	}
-	public void setCell(CellType cell) {
-		this.cell = cell;
-	}
+
 	public Hotel getHotel() {
 		return hotel;
 	}
-	public void setHotel(Hotel hotel) {
-		this.hotel = hotel;
-	}
-	
-	@Override
-	public String toString() {
-		return "Cell [cell=" + cell + ", hotel=" + hotel + "]";
+
+	public static class Builder {
+		
+		private CellType cell;
+		private Hotel hotel;
+		
+		public Builder withCell(CellType cell) {
+			this.cell = cell;
+			if(cell == CellType.H) {
+				this.hotel = new Hotel();
+			}
+			return this;
+		}
+		
+		public Cell build() {
+			return new Cell(this);
+		}
 	}
 }

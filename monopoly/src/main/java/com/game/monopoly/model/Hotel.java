@@ -1,18 +1,14 @@
 package com.game.monopoly.model;
 
+import org.apache.commons.lang3.RandomUtils;
+
 public class Hotel {
 
 	private int id;
-	private String name;
 	private Player owner;
 
-	/**
-	 * @param id
-	 * @param name
-	 */
-	public Hotel(int id, String name) {
-		this.id = id;
-		this.name = name;
+	public Hotel() {
+		this.id = RandomUtils.nextInt(1, 1000);
 	}
 
 	public int getId() {
@@ -21,14 +17,6 @@ public class Hotel {
 	
 	public void setId(int id) {
 		this.id = id;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	
-	public void setName(String name) {
-		this.name = name;
 	}
 	
 	public Player getOwner() {
@@ -41,6 +29,6 @@ public class Hotel {
 
 	@Override
 	public String toString() {
-		return "Hotel [id=" + id + ", name=" + name + ", owner=" + owner + "]";
+		return "Hotel [id=" + id + ", owner=" + owner + "]";
 	}
 }

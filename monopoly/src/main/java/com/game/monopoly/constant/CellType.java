@@ -2,8 +2,8 @@ package com.game.monopoly.constant;
 
 public enum CellType {
 	
-	E("Emplty", 0),
-	J("JAIL", 150),
+	E("Empty", 0),
+	J("Jail", 150),
 	T("Treasure", 200),
 	H("Hotel", 200);
 
